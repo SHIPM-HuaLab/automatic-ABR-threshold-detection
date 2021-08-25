@@ -1,0 +1,489 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>stats_thres_mean_exclude</title><meta name="generator" content="MATLAB 9.9"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-05-07"><meta name="DC.source" content="stats_thres_mean_exclude.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">%%Statistic of algorithm threshold and human read-outs</span>
+<span class="comment">%calculate the reduced sweeps algorithm afford.</span>
+<span class="comment">%the data has been saved as a .mat file same as excel file.</span>
+
+<span class="comment">%Author: Haoyu Wang &lt;whaoyu3@hotmail.com&gt;</span>
+
+clear;
+c= [0 0.4470 0.7410;
+    0.8500 0.3250 0.0980;
+    0.9290 0.6940 0.1250;
+    0.4940 0.1840 0.5560;
+    0.4660 0.6740 0.1880;
+    0.3010 0.7450 0.9330;
+    0.6350 0.0780 0.1840;
+    0.2330 0.2270 0.0940;
+    0.1419 0.4218 0.9157;
+    0.0357 0.8491 0.9340;
+    0.6787 0.7577 0.7431];  <span class="comment">%set the colormap</span>
+load(<span class="string">'.\thres_data_v2.mat'</span>)
+</pre><pre class="codeinput"><span class="comment">%set two lines above and below the line meaning algorithm same as read-out.</span>
+f_upline=@(x)(x+10);
+f_fitline=@(x)(x);
+f_downline=@(x)(x-10);
+
+<span class="comment">%plot figures</span>
+figure(1);
+thres_alg_mice=algorithm_mice.algorithmnoFit';
+expert_mice_all_mean=(sum(expert_mice_all)-max(expert_mice_all)-min(expert_mice_all))/3;
+expert_mice_all_std=std(expert_mice_all);
+expert_mice_cum_mean=(sum(expert_mice_cum)-max(expert_mice_cum)-min(expert_mice_cum))/3;
+expert_mice_cum_std=std(expert_mice_cum);
+
+[f1,gof1]=lineFit(thres_alg_mice,expert_mice_all_mean);
+[f2,gof2]=lineFit(thres_alg_mice,expert_mice_cum_mean);
+subplot(3,2,1)
+<span class="keyword">for</span> i = 1:length(thres_alg_mice)
+    scatter(thres_alg_mice(i),expert_mice_all_mean(i),<span class="string">'marker'</span>,<span class="string">'.'</span>,<span class="string">'MarkerEdgeColor'</span>,c(i,:),<span class="string">'sizeData'</span>,600)
+    hold <span class="string">on</span>;
+
+<span class="keyword">end</span>
+plot(f1,<span class="string">'r'</span>);
+plot((0:80),f_upline(0:80),<span class="string">'k-.'</span>);
+plot((10:90),f_downline(10:90),<span class="string">'k-.'</span>);
+plot((0:90),f_fitline(0:90),<span class="string">'k--'</span>);
+xlim([0,80]);
+ylim([0,80]);
+xlabel(<span class="string">'Threshold (dB nHL) - algorithm'</span>)
+ylabel(<span class="string">'Threshold (dB nHL) - human'</span>)
+legend(<span class="string">'off'</span>)
+daspect([1,1,1])
+ylabel(<span class="string">'Threshold (dB nHL) - algorithm'</span>);
+xlabel(<span class="string">'Threshold (dB nHL) - human'</span>)
+set(gca,<span class="string">'tickdir'</span>,<span class="string">'out'</span>,<span class="string">'fontname'</span>,<span class="string">'arial'</span>,<span class="string">'fontsize'</span>,12)
+
+subplot(3,2,3)
+<span class="keyword">for</span> i = 1:length(thres_alg_mice)
+    scatter(thres_alg_mice(i),expert_mice_cum_mean(i),<span class="string">'marker'</span>,<span class="string">'.'</span>,<span class="string">'MarkerEdgeColor'</span>,c(i,:),<span class="string">'sizeData'</span>,600)
+    hold <span class="string">on</span>;
+
+<span class="keyword">end</span>
+plot(f2,<span class="string">'r'</span>);
+plot((0:80),f_upline(0:80),<span class="string">'k-.'</span>);
+plot((10:90),f_downline(10:90),<span class="string">'k-.'</span>);
+plot((0:90),f_fitline(0:90),<span class="string">'k--'</span>);
+xlim([0,80]);
+ylim([0,80]);
+xlabel(<span class="string">'Threshold (dB nHL) - algorithm'</span>)
+ylabel(<span class="string">'Threshold (dB nHL) - human'</span>)
+legend(<span class="string">'off'</span>)
+daspect([1,1,1])
+ylabel(<span class="string">'Threshold (dB nHL) - algorithm'</span>);
+xlabel(<span class="string">'Threshold (dB nHL) - human'</span>)
+set(gca,<span class="string">'tickdir'</span>,<span class="string">'out'</span>,<span class="string">'fontname'</span>,<span class="string">'arial'</span>,<span class="string">'fontsize'</span>,12)
+</pre><img vspace="5" hspace="5" src="stats_thres_mean_exclude_01.png" alt=""> <pre class="codeinput">subplot(3,2,2)
+fit_dot=[1:5,7:9];
+thres_alg_human=algorithm_human.algorithmnoFit';
+expert_human_all_mean=(sum(expert_human_all)-max(expert_human_all)-min(expert_human_all))/3;
+expert_human_all_std=std(expert_human_all);
+expert_human_cum_mean=(sum(expert_human_cum)-max(expert_human_cum)-min(expert_human_cum))/3;
+expert_human_cum_std=std(expert_human_cum);
+
+[f3,gof3]=lineFit(thres_alg_human,expert_human_all_mean);
+[f4,gof4]=lineFit(thres_alg_human,expert_human_cum_mean);
+
+<span class="keyword">for</span> i = 1:length(thres_alg_human)
+    scatter(thres_alg_human(i),expert_human_all_mean(i),<span class="string">'marker'</span>,<span class="string">'.'</span>,<span class="string">'MarkerEdgeColor'</span>,c(i,:),<span class="string">'sizeData'</span>,600)
+    hold <span class="string">on</span>;
+
+<span class="keyword">end</span>
+plot(f3,<span class="string">'r'</span>);
+plot((0:50),f_upline(0:50),<span class="string">'k-.'</span>);
+plot((10:60),f_downline(10:60),<span class="string">'k-.'</span>);
+plot((0:60),f_fitline(0:60),<span class="string">'k--'</span>);
+xlim([0,60]);
+ylim([0,60]);
+xlabel(<span class="string">'Threshold (dB nHL) - algorithm'</span>)
+ylabel(<span class="string">'Threshold (dB nHL) - human'</span>)
+legend(<span class="string">'off'</span>)
+xlim([0,50]);
+ylim([0,50]);
+daspect([1,1,1])
+ylabel(<span class="string">'Threshold (dB nHL) - algorithm'</span>);
+xlabel(<span class="string">'Threshold (dB nHL) - human'</span>)
+set(gca,<span class="string">'tickdir'</span>,<span class="string">'out'</span>,<span class="string">'fontname'</span>,<span class="string">'arial'</span>,<span class="string">'fontsize'</span>,12)
+
+subplot(3,2,4)
+<span class="keyword">for</span> i = 1:length(thres_alg_human)
+    scatter(thres_alg_human(i),expert_human_cum_mean(i),<span class="string">'marker'</span>,<span class="string">'.'</span>,<span class="string">'MarkerEdgeColor'</span>,c(i,:),<span class="string">'sizeData'</span>,600)
+    hold <span class="string">on</span>;
+
+<span class="keyword">end</span>
+plot(f4,<span class="string">'r'</span>);
+plot((0:80),f_upline(0:80),<span class="string">'k-.'</span>);
+plot((10:90),f_downline(10:90),<span class="string">'k-.'</span>);
+plot((0:90),f_fitline(0:90),<span class="string">'k--'</span>);
+xlim([0,60]);
+ylim([0,60]);
+xlabel(<span class="string">'Threshold (dB nHL) - algorithm'</span>)
+ylabel(<span class="string">'Threshold (dB nHL) - human'</span>)
+legend(<span class="string">'off'</span>)
+xlim([0,50]);
+ylim([0,50]);
+daspect([1,1,1])
+ylabel(<span class="string">'Threshold (dB nHL) - algorithm'</span>);
+xlabel(<span class="string">'Threshold (dB nHL) - human'</span>)
+set(gca,<span class="string">'tickdir'</span>,<span class="string">'out'</span>,<span class="string">'fontname'</span>,<span class="string">'arial'</span>,<span class="string">'fontsize'</span>,12)
+
+subplot(3,2,5)
+
+norm_all_mice=iter_all_mice/mean(iter_all_mice);
+norm_cum_mice=iter_cum_mice/mean(iter_all_mice);
+randseed=(rand(length(norm_all_mice),2)-0.5)/5;
+bar([1,2],[mean(norm_all_mice),mean(norm_cum_mice)],<span class="string">'BarWidth'</span>,0.5,<span class="string">'FaceColor'</span>,<span class="string">'none'</span>)
+hold <span class="string">on</span>
+errorbar([1,2],[mean(norm_all_mice),mean(norm_cum_mice)],[std(norm_all_mice),std(norm_cum_mice)],<span class="string">'k'</span>)
+<span class="keyword">for</span> i =1:length(norm_all_mice)
+    plot([1,2]+randseed(i,:),[norm_all_mice(i),norm_cum_mice(i)],<span class="string">'Color'</span>,c(i,:),<span class="string">'LineStyle'</span>,<span class="string">'-'</span>,<span class="string">'Marker'</span>,<span class="string">"."</span>,<span class="string">'MarkerFaceColor'</span>,c(i,:),<span class="string">'MarkerEdgeColor'</span>,c(i,:),<span class="string">'MarkerSize'</span>,20)
+<span class="keyword">end</span>
+xlim([0,3])
+ylim([0,1.5])
+ylabel(<span class="string">'Normalized sweep counts'</span>)
+set(gca,<span class="string">'box'</span>,<span class="string">'off'</span>,<span class="string">'xticklabel'</span>,[<span class="string">"Conv"</span>,<span class="string">"Cum"</span>],<span class="string">'tickdir'</span>,<span class="string">'out'</span>,<span class="string">'fontname'</span>,<span class="string">'arial'</span>,<span class="string">'fontsize'</span>,12)
+daspect([2,1,1])
+<span class="keyword">for</span> i =1:length(norm_all_mice)
+    reduce_per(i,:)=(norm_all_mice(i)-norm_cum_mice(i))/norm_all_mice(i);
+<span class="keyword">end</span>
+disp(sprintf(<span class="string">'algorithm skipped a reduction of %0.4f &plusmn; %0.4f of nonproductive number of sweeps'</span>,mean(reduce_per),std(reduce_per)))
+
+subplot(3,2,6)
+
+norm_all_human=iter_all_human/mean(iter_all_human);
+norm_cum_human=iter_cum_human/mean(iter_all_human);
+randseed=(rand(length(norm_all_human),2)-0.5)/5;
+bar([1,2],[mean(norm_all_human),mean(norm_cum_human)],<span class="string">'BarWidth'</span>,0.5,<span class="string">'FaceColor'</span>,<span class="string">'none'</span>)
+hold <span class="string">on</span>
+errorbar([1,2],[mean(norm_all_human),mean(norm_cum_human)],[std(norm_all_human),std(norm_cum_human)],<span class="string">'k'</span>)
+<span class="keyword">for</span> i =1:length(norm_all_human)
+    plot([1,2]+randseed(i,:),[norm_all_human(i),norm_cum_human(i)],<span class="string">'Color'</span>,c(i,:),<span class="string">'LineStyle'</span>,<span class="string">'-'</span>,<span class="string">'Marker'</span>,<span class="string">"."</span>,<span class="string">'MarkerFaceColor'</span>,c(i,:),<span class="string">'MarkerEdgeColor'</span>,c(i,:),<span class="string">'MarkerSize'</span>,20)
+<span class="keyword">end</span>
+xlim([0,3])
+ylim([0,1.5])
+ylabel(<span class="string">'Normalized sweep counts'</span>)
+set(gca,<span class="string">'box'</span>,<span class="string">'off'</span>,<span class="string">'xticklabel'</span>,[<span class="string">"Conv"</span>,<span class="string">"Cum"</span>],<span class="string">'tickdir'</span>,<span class="string">'out'</span>,<span class="string">'fontname'</span>,<span class="string">'arial'</span>,<span class="string">'fontsize'</span>,12)
+daspect([2,1,1])
+<span class="keyword">for</span> i =1:length(norm_all_human)
+    reduce_per_humam(i,:)=(norm_all_human(i)-norm_cum_human(i))/norm_all_human(i);
+<span class="keyword">end</span>
+disp(sprintf(<span class="string">'algorithm skipped a reduction of %0.4f &plusmn; %0.4f of nonproductive number of sweeps'</span>,mean(reduce_per_humam),std(reduce_per_humam)))
+
+<span class="comment">% subplot(3,2,1)</span>
+<span class="comment">% for i = 1:5</span>
+<span class="comment">%     scatter(thres_alg_mice,expert_mice_all(i,:),'k.','sizeData',600)</span>
+<span class="comment">%     hold on;</span>
+<span class="comment">%</span>
+<span class="comment">% end</span>
+<span class="comment">% xlim([0,90]);</span>
+<span class="comment">% ylim([0,90]);</span>
+<span class="comment">%</span>
+<span class="comment">% subplot(3,2,3)</span>
+<span class="comment">% for i = 1:5</span>
+<span class="comment">%     scatter(thres_alg_mice,expert_mice_cum(i,:),'k.','sizeData',600)</span>
+<span class="comment">%     hold on;</span>
+<span class="comment">%</span>
+<span class="comment">% end</span>
+<span class="comment">% xlim([0,90]);</span>
+<span class="comment">% ylim([0,90]);</span>
+<span class="comment">%</span>
+<span class="comment">% subplot(3,2,2)</span>
+<span class="comment">% thres_alg_human=algorithm_human.algorithmsigFit';</span>
+<span class="comment">% for i = 1:5</span>
+<span class="comment">%     scatter(thres_alg_human,expert_human_all(i,:),'k.','sizeData',600)</span>
+<span class="comment">%     hold on;</span>
+<span class="comment">%</span>
+<span class="comment">% end</span>
+<span class="comment">% xlim([0,60]);</span>
+<span class="comment">% ylim([0,60]);</span>
+<span class="comment">%</span>
+<span class="comment">% subplot(3,2,4)</span>
+<span class="comment">% for i = 1:5</span>
+<span class="comment">%     scatter(thres_alg_human,expert_human_cum(i,:),'k.','sizeData',600)</span>
+<span class="comment">%     hold on;</span>
+<span class="comment">%</span>
+<span class="comment">% end</span>
+<span class="comment">% xlim([0,60]);</span>
+<span class="comment">% ylim([0,60]);</span>
+</pre><pre class="codeoutput">algorithm skipped a reduction of 0.6672 &plusmn; 0.0498 of nonproductive number of sweeps
+algorithm skipped a reduction of 0.4319 &plusmn; 0.1248 of nonproductive number of sweeps
+</pre><img vspace="5" hspace="5" src="stats_thres_mean_exclude_02.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%%Statistic of algorithm threshold and human read-outs
+%calculate the reduced sweeps algorithm afford.
+%the data has been saved as a .mat file same as excel file.
+
+%Author: Haoyu Wang <whaoyu3@hotmail.com>
+
+clear;
+c= [0 0.4470 0.7410;
+    0.8500 0.3250 0.0980;
+    0.9290 0.6940 0.1250;
+    0.4940 0.1840 0.5560;
+    0.4660 0.6740 0.1880;
+    0.3010 0.7450 0.9330;
+    0.6350 0.0780 0.1840;
+    0.2330 0.2270 0.0940;
+    0.1419 0.4218 0.9157;
+    0.0357 0.8491 0.9340;
+    0.6787 0.7577 0.7431];  %set the colormap
+load('.\thres_data_v2.mat')
+%%
+%set two lines above and below the line meaning algorithm same as read-out.
+f_upline=@(x)(x+10);
+f_fitline=@(x)(x);
+f_downline=@(x)(x-10);
+
+%plot figures
+figure(1);
+thres_alg_mice=algorithm_mice.algorithmnoFit';
+expert_mice_all_mean=(sum(expert_mice_all)-max(expert_mice_all)-min(expert_mice_all))/3;
+expert_mice_all_std=std(expert_mice_all);
+expert_mice_cum_mean=(sum(expert_mice_cum)-max(expert_mice_cum)-min(expert_mice_cum))/3;
+expert_mice_cum_std=std(expert_mice_cum);
+
+[f1,gof1]=lineFit(thres_alg_mice,expert_mice_all_mean);
+[f2,gof2]=lineFit(thres_alg_mice,expert_mice_cum_mean);
+subplot(3,2,1)
+for i = 1:length(thres_alg_mice)
+    scatter(thres_alg_mice(i),expert_mice_all_mean(i),'marker','.','MarkerEdgeColor',c(i,:),'sizeData',600)
+    hold on;
+    
+end
+plot(f1,'r');
+plot((0:80),f_upline(0:80),'k-.');
+plot((10:90),f_downline(10:90),'k-.');
+plot((0:90),f_fitline(0:90),'kREPLACE_WITH_DASH_DASH');
+xlim([0,80]);
+ylim([0,80]);
+xlabel('Threshold (dB nHL) - algorithm')
+ylabel('Threshold (dB nHL) - human')
+legend('off')
+daspect([1,1,1])
+ylabel('Threshold (dB nHL) - algorithm');
+xlabel('Threshold (dB nHL) - human')
+set(gca,'tickdir','out','fontname','arial','fontsize',12)
+
+subplot(3,2,3)
+for i = 1:length(thres_alg_mice)
+    scatter(thres_alg_mice(i),expert_mice_cum_mean(i),'marker','.','MarkerEdgeColor',c(i,:),'sizeData',600)
+    hold on;
+    
+end
+plot(f2,'r');
+plot((0:80),f_upline(0:80),'k-.');
+plot((10:90),f_downline(10:90),'k-.');
+plot((0:90),f_fitline(0:90),'kREPLACE_WITH_DASH_DASH');
+xlim([0,80]);
+ylim([0,80]);
+xlabel('Threshold (dB nHL) - algorithm')
+ylabel('Threshold (dB nHL) - human')
+legend('off')
+daspect([1,1,1])
+ylabel('Threshold (dB nHL) - algorithm');
+xlabel('Threshold (dB nHL) - human')
+set(gca,'tickdir','out','fontname','arial','fontsize',12)
+
+%%
+subplot(3,2,2)
+fit_dot=[1:5,7:9];
+thres_alg_human=algorithm_human.algorithmnoFit';
+expert_human_all_mean=(sum(expert_human_all)-max(expert_human_all)-min(expert_human_all))/3;
+expert_human_all_std=std(expert_human_all);
+expert_human_cum_mean=(sum(expert_human_cum)-max(expert_human_cum)-min(expert_human_cum))/3;
+expert_human_cum_std=std(expert_human_cum);
+
+[f3,gof3]=lineFit(thres_alg_human,expert_human_all_mean);
+[f4,gof4]=lineFit(thres_alg_human,expert_human_cum_mean);
+
+for i = 1:length(thres_alg_human)
+    scatter(thres_alg_human(i),expert_human_all_mean(i),'marker','.','MarkerEdgeColor',c(i,:),'sizeData',600)
+    hold on;
+    
+end
+plot(f3,'r');
+plot((0:50),f_upline(0:50),'k-.');
+plot((10:60),f_downline(10:60),'k-.');
+plot((0:60),f_fitline(0:60),'kREPLACE_WITH_DASH_DASH');
+xlim([0,60]);
+ylim([0,60]);
+xlabel('Threshold (dB nHL) - algorithm')
+ylabel('Threshold (dB nHL) - human')
+legend('off')
+xlim([0,50]);
+ylim([0,50]);
+daspect([1,1,1])
+ylabel('Threshold (dB nHL) - algorithm');
+xlabel('Threshold (dB nHL) - human')
+set(gca,'tickdir','out','fontname','arial','fontsize',12)
+
+subplot(3,2,4)
+for i = 1:length(thres_alg_human)
+    scatter(thres_alg_human(i),expert_human_cum_mean(i),'marker','.','MarkerEdgeColor',c(i,:),'sizeData',600)
+    hold on;
+    
+end
+plot(f4,'r');
+plot((0:80),f_upline(0:80),'k-.');
+plot((10:90),f_downline(10:90),'k-.');
+plot((0:90),f_fitline(0:90),'kREPLACE_WITH_DASH_DASH');
+xlim([0,60]);
+ylim([0,60]);
+xlabel('Threshold (dB nHL) - algorithm')
+ylabel('Threshold (dB nHL) - human')
+legend('off')
+xlim([0,50]);
+ylim([0,50]);
+daspect([1,1,1])
+ylabel('Threshold (dB nHL) - algorithm');
+xlabel('Threshold (dB nHL) - human')
+set(gca,'tickdir','out','fontname','arial','fontsize',12)
+
+subplot(3,2,5)
+
+norm_all_mice=iter_all_mice/mean(iter_all_mice);
+norm_cum_mice=iter_cum_mice/mean(iter_all_mice);
+randseed=(rand(length(norm_all_mice),2)-0.5)/5;
+bar([1,2],[mean(norm_all_mice),mean(norm_cum_mice)],'BarWidth',0.5,'FaceColor','none')
+hold on
+errorbar([1,2],[mean(norm_all_mice),mean(norm_cum_mice)],[std(norm_all_mice),std(norm_cum_mice)],'k')
+for i =1:length(norm_all_mice)
+    plot([1,2]+randseed(i,:),[norm_all_mice(i),norm_cum_mice(i)],'Color',c(i,:),'LineStyle','-','Marker',".",'MarkerFaceColor',c(i,:),'MarkerEdgeColor',c(i,:),'MarkerSize',20)
+end
+xlim([0,3])
+ylim([0,1.5])
+ylabel('Normalized sweep counts')
+set(gca,'box','off','xticklabel',["Conv","Cum"],'tickdir','out','fontname','arial','fontsize',12)
+daspect([2,1,1])
+for i =1:length(norm_all_mice)
+    reduce_per(i,:)=(norm_all_mice(i)-norm_cum_mice(i))/norm_all_mice(i);
+end
+disp(sprintf('algorithm skipped a reduction of %0.4f ± %0.4f of nonproductive number of sweeps',mean(reduce_per),std(reduce_per)))
+
+subplot(3,2,6)
+
+norm_all_human=iter_all_human/mean(iter_all_human);
+norm_cum_human=iter_cum_human/mean(iter_all_human);
+randseed=(rand(length(norm_all_human),2)-0.5)/5;
+bar([1,2],[mean(norm_all_human),mean(norm_cum_human)],'BarWidth',0.5,'FaceColor','none')
+hold on
+errorbar([1,2],[mean(norm_all_human),mean(norm_cum_human)],[std(norm_all_human),std(norm_cum_human)],'k')
+for i =1:length(norm_all_human)
+    plot([1,2]+randseed(i,:),[norm_all_human(i),norm_cum_human(i)],'Color',c(i,:),'LineStyle','-','Marker',".",'MarkerFaceColor',c(i,:),'MarkerEdgeColor',c(i,:),'MarkerSize',20)
+end
+xlim([0,3])
+ylim([0,1.5])
+ylabel('Normalized sweep counts')
+set(gca,'box','off','xticklabel',["Conv","Cum"],'tickdir','out','fontname','arial','fontsize',12)
+daspect([2,1,1])
+for i =1:length(norm_all_human)
+    reduce_per_humam(i,:)=(norm_all_human(i)-norm_cum_human(i))/norm_all_human(i);
+end
+disp(sprintf('algorithm skipped a reduction of %0.4f ± %0.4f of nonproductive number of sweeps',mean(reduce_per_humam),std(reduce_per_humam)))
+
+% subplot(3,2,1)
+% for i = 1:5
+%     scatter(thres_alg_mice,expert_mice_all(i,:),'k.','sizeData',600)
+%     hold on;
+%     
+% end
+% xlim([0,90]);
+% ylim([0,90]);
+% 
+% subplot(3,2,3)
+% for i = 1:5
+%     scatter(thres_alg_mice,expert_mice_cum(i,:),'k.','sizeData',600)
+%     hold on;
+%     
+% end
+% xlim([0,90]);
+% ylim([0,90]);
+% 
+% subplot(3,2,2)
+% thres_alg_human=algorithm_human.algorithmsigFit';
+% for i = 1:5
+%     scatter(thres_alg_human,expert_human_all(i,:),'k.','sizeData',600)
+%     hold on;
+%     
+% end
+% xlim([0,60]);
+% ylim([0,60]);
+% 
+% subplot(3,2,4)
+% for i = 1:5
+%     scatter(thres_alg_human,expert_human_cum(i,:),'k.','sizeData',600)
+%     hold on;
+%     
+% end
+% xlim([0,60]);
+% ylim([0,60]);
+
+##### SOURCE END #####
+--></body></html>

@@ -1,0 +1,378 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>human_detector_v1</title><meta name="generator" content="MATLAB 9.9"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-05-07"><meta name="DC.source" content="human_detector_v1.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">%Example of detecting a human ABR threshold.</span>
+<span class="comment">%Author: Haoyu Wang &lt;whaoyu3@hotmail.com&gt;</span>
+
+clear;
+addpath(<span class="string">'.\function'</span>);  <span class="comment">%add functions to scritp path</span>
+data_name=<span class="string">'P3.mat'</span>;
+spl_data_path=[<span class="string">'./human_data/'</span> data_name];
+load(spl_data_path);
+sampling_point=1:300;   <span class="comment">% analyze firt 15 ms, 300 data points</span>
+volt_en=10;
+c=[0 0 0;
+   141 209 123;
+   0 0 255];            <span class="comment">%colormap</span>
+capture_time = time(sampling_point);
+num_nosignal=0;
+</pre><pre class="codeinput">figure(1);
+subplot(1,3,1)
+<span class="comment">%plot max iteration sweeps</span>
+<span class="keyword">for</span> k = 1:length(ABR)
+    data=ABR(k).p;
+    plot(time(sampling_point),smooth(time(sampling_point),mean(data(end-2:end,sampling_point)),0.05,<span class="string">'loess'</span>)*volt_en+ABR(k).intensity,<span class="string">'k'</span>);
+    hold <span class="string">on</span>;
+<span class="keyword">end</span>
+
+xlabel(<span class="string">'Time (ms)'</span>)
+ylabel(<span class="string">'Level (dB pe SPL)'</span>)
+set(gca,<span class="string">'box'</span>,<span class="string">'off'</span>,<span class="string">'tickdir'</span>,<span class="string">'out'</span>,<span class="string">'fontname'</span>,<span class="string">'arial'</span>,<span class="string">'fontsize'</span>,14)
+ylim([-5,65])
+
+subplot(1,3,2)
+<span class="comment">%plot satisfied iteration sweeps which could be found signal</span>
+is_signal=ones(1,length(ABR));
+tic;
+<span class="keyword">for</span> k = 1:length(ABR)
+    buff(1:3,:)=zeros(3,size(ABR(k).p,2));
+    data=ABR(k).p;
+    spl(k)=ABR(k).intensity;
+
+    <span class="keyword">for</span> j = 1:size(data,1)/3
+        indx=(j-1)*3+1:(j-1)*3+3;
+        buff=data(indx,:);
+
+        test_signal=buff(1:3,sampling_point);
+        <span class="keyword">for</span> i =1:3
+            test_signal(i,:)=smooth(time(sampling_point),test_signal(i,:),0.05,<span class="string">'loess'</span>)';
+        <span class="keyword">end</span>
+        [lagIdx,res(k,j),lag,ccm]=cross_test_3signal_human(test_signal);
+
+        buffers(k,j).buffers=buff(1:3,sampling_point);
+        lags(k).spl=spl(k);
+        lags(k).lag(j,:)=lag;
+        lags(k).ccm(j,:)=ccm;
+<span class="comment">%         if length(find(min(lags(k).lag(1:j,:))&lt;=round(size(sampling_point,2)/50)))&gt;=3</span>
+<span class="comment">%             res(k,j)=3;</span>
+<span class="comment">%         end</span>
+        <span class="keyword">if</span> res(k,j)&gt;=3
+            final_num(k)=j;
+            thres_num(k)=j;
+<span class="comment">%             plot(time(sampling_point),mean(buff(:,sampling_point))*volt_en+spl(k),'k');</span>
+<span class="comment">%             hold on;</span>
+          <span class="keyword">for</span> i = 1:3
+              plot(time(sampling_point),test_signal(i,:)*volt_en+spl(k),<span class="string">'Color'</span>,c(i,:)/255);
+              hold <span class="string">on</span>
+          <span class="keyword">end</span>
+          <span class="keyword">break</span>;
+
+        <span class="keyword">end</span>
+        <span class="keyword">if</span> j==size(data,1)/3 &amp;&amp; res(k,j)&lt;3
+            is_signal(k)=0;
+            final_num(k)=j;
+            thres_num(k)=j+1;
+            <span class="keyword">for</span> i = 1:3
+                plot(time(sampling_point),test_signal(i,:)*volt_en+spl(k),<span class="string">'Color'</span>,c(i,:)/255);
+                hold <span class="string">on</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+<span class="comment">%     if num_nosignal==2</span>
+<span class="comment">%         break;</span>
+<span class="comment">%     end</span>
+<span class="keyword">end</span>
+toc;
+set(gca,<span class="string">'box'</span>,<span class="string">'off'</span>,<span class="string">'tickdir'</span>,<span class="string">'out'</span>,<span class="string">'fontname'</span>,<span class="string">'arial'</span>,<span class="string">'fontsize'</span>,14)
+xlabel(<span class="string">'Time (ms)'</span>)
+ylim([-5,65])
+disp(spl)
+disp(thres_num)
+disp(is_signal)
+disp(sprintf(<span class="string">'max test num is %.4d and max_iteration is %.1d'</span>,ABR(1).sweeps(end),size(data,1)/3))
+
+subplot(3,3,3)
+<span class="keyword">for</span> k=1:length(spl)
+    ccMat(k,:)=lags(k).ccm(final_num(k),:);
+<span class="keyword">end</span>
+cc_mean=normalize(mean(ccMat,2),<span class="string">'range'</span>);
+cc_std=std(ccMat,[],2);
+scatter(spl(find(is_signal)),cc_mean(find(is_signal)),<span class="string">'k.'</span>,<span class="string">'SizeData'</span>,600);
+hold <span class="string">on</span>;
+scatter(spl(find(not(is_signal))),cc_mean(find(not(is_signal))),<span class="string">'ko'</span>,<span class="string">'SizeData'</span>,100);
+errorbar(spl,cc_mean,cc_std,<span class="string">'k'</span>)
+set(gca,<span class="string">'xDir'</span>,<span class="string">'reverse'</span>,<span class="string">'box'</span>,<span class="string">'off'</span>,<span class="string">'tickdir'</span>,<span class="string">'out'</span>,<span class="string">'fontname'</span>,<span class="string">'arial'</span>,<span class="string">'fontsize'</span>,14)
+
+subplot(3,3,6)
+lagMat=[];
+<span class="keyword">for</span> k=1:length(spl)
+    lagMat(k,:)=lags(k).lag(final_num(k),:);
+<span class="keyword">end</span>
+lag_mean=mean(lagMat,2);
+lag_std=std(lagMat,[],2);
+scatter(spl(find(is_signal)),lag_mean(find(is_signal)),<span class="string">'k.'</span>,<span class="string">'SizeData'</span>,600);
+hold <span class="string">on</span>;
+scatter(spl(find(not(is_signal))),lag_mean(find(not(is_signal))),<span class="string">'ko'</span>,<span class="string">'SizeData'</span>,100);
+errorbar(spl,lag_mean,lag_std,<span class="string">'k'</span>)
+plot(0:60,(0:60)*0+6,<span class="string">'r--'</span>);
+set(gca,<span class="string">'xDir'</span>,<span class="string">'reverse'</span>,<span class="string">'box'</span>,<span class="string">'off'</span>,<span class="string">'tickdir'</span>,<span class="string">'out'</span>,<span class="string">'fontname'</span>,<span class="string">'arial'</span>,<span class="string">'fontsize'</span>,14)
+
+
+subplot(3,3,9)
+[f1,gof]=sigFit(spl,(final_num-1)/(max(final_num)-1));
+spls=0:0.1:60;
+yfit=f1(spls)*(max(final_num)-1)+1;
+scatter(spl(find(is_signal)),final_num(find(is_signal)),<span class="string">'k.'</span>,<span class="string">'SizeData'</span>,600);
+hold <span class="string">on</span>;
+scatter(spl(find(not(is_signal))),final_num(find(not(is_signal))),<span class="string">'ko'</span>,<span class="string">'SizeData'</span>,100);
+plot(spl,final_num,<span class="string">'k-'</span>)
+plot(10:60,(10:60)*0+7,<span class="string">'r--'</span>);
+<span class="comment">%plot(spls,yfit,'r-')</span>
+ylim([0,8])
+xlabel(<span class="string">'Level (dB pe SPL)'</span>)
+ylabel(<span class="string">'Iteration count'</span>)
+set(gca,<span class="string">'xDir'</span>,<span class="string">'reverse'</span>,<span class="string">'box'</span>,<span class="string">'off'</span>,<span class="string">'tickdir'</span>,<span class="string">'out'</span>,<span class="string">'fontname'</span>,<span class="string">'arial'</span>,<span class="string">'fontsize'</span>,14)
+
+<span class="comment">% subplot(3,2,4)</span>
+[f1,gof]=sigFit(spl,(final_num-1)/(max(final_num)-1));
+<span class="comment">% scatter(spl,(final_num-1)/(max(final_num)-1),'k.','sizeData',600);</span>
+<span class="comment">% hold on;</span>
+spls=0:0.1:60;
+yfit=f1(spls);
+<span class="comment">% plot(spls,yfit,'r-');</span>
+<span class="comment">% set(gca,'box','off','xdir','reverse','tickdir','out')</span>
+thres=round(spls(find(yfit&lt;=0.9,1,<span class="string">'first'</span>)));
+disp(sprintf(<span class="string">'Satified threshold on 0.9 sigFit is %0.2d dB'</span>,thres));
+disp(gof)
+</pre><pre class="codeoutput">Elapsed time is 0.181822 seconds.
+    60    55    50    45    40    35    30    25    20    15    10     5     0
+
+     3     1     1     2     2     1     2     4     2     5     8     8     8
+
+     1     1     1     1     1     1     1     1     1     1     0     0     0
+
+max test num is 3500 and max_iteration is 7
+Satified threshold on 0.9 sigFit is 13 dB
+           sse: 0.4440
+       rsquare: 0.7617
+           dfe: 12
+    adjrsquare: 0.7617
+          rmse: 0.1924
+
+</pre><img vspace="5" hspace="5" src="human_detector_v1_01.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%Example of detecting a human ABR threshold.
+%Author: Haoyu Wang <whaoyu3@hotmail.com>
+
+clear;
+addpath('.\function');  %add functions to scritp path
+data_name='P3.mat';
+spl_data_path=['./human_data/' data_name];
+load(spl_data_path);
+sampling_point=1:300;   % analyze firt 15 ms, 300 data points
+volt_en=10;
+c=[0 0 0;
+   141 209 123;
+   0 0 255];            %colormap
+capture_time = time(sampling_point);
+num_nosignal=0;
+
+%%
+figure(1);
+subplot(1,3,1)
+%plot max iteration sweeps
+for k = 1:length(ABR)
+    data=ABR(k).p;
+    plot(time(sampling_point),smooth(time(sampling_point),mean(data(end-2:end,sampling_point)),0.05,'loess')*volt_en+ABR(k).intensity,'k');
+    hold on;
+end
+
+xlabel('Time (ms)')
+ylabel('Level (dB pe SPL)')
+set(gca,'box','off','tickdir','out','fontname','arial','fontsize',14)
+ylim([-5,65])
+
+subplot(1,3,2)
+%plot satisfied iteration sweeps which could be found signal
+is_signal=ones(1,length(ABR));
+tic;
+for k = 1:length(ABR)
+    buff(1:3,:)=zeros(3,size(ABR(k).p,2));
+    data=ABR(k).p;
+    spl(k)=ABR(k).intensity;
+
+    for j = 1:size(data,1)/3
+        indx=(j-1)*3+1:(j-1)*3+3;
+        buff=data(indx,:);
+        
+        test_signal=buff(1:3,sampling_point);
+        for i =1:3
+            test_signal(i,:)=smooth(time(sampling_point),test_signal(i,:),0.05,'loess')';
+        end
+        [lagIdx,res(k,j),lag,ccm]=cross_test_3signal_human(test_signal);
+        
+        buffers(k,j).buffers=buff(1:3,sampling_point);
+        lags(k).spl=spl(k);
+        lags(k).lag(j,:)=lag;
+        lags(k).ccm(j,:)=ccm;
+%         if length(find(min(lags(k).lag(1:j,:))<=round(size(sampling_point,2)/50)))>=3
+%             res(k,j)=3;
+%         end
+        if res(k,j)>=3
+            final_num(k)=j;
+            thres_num(k)=j;
+%             plot(time(sampling_point),mean(buff(:,sampling_point))*volt_en+spl(k),'k');
+%             hold on;
+          for i = 1:3
+              plot(time(sampling_point),test_signal(i,:)*volt_en+spl(k),'Color',c(i,:)/255);
+              hold on
+          end
+          break;
+          
+        end
+        if j==size(data,1)/3 && res(k,j)<3
+            is_signal(k)=0;
+            final_num(k)=j;
+            thres_num(k)=j+1;
+            for i = 1:3
+                plot(time(sampling_point),test_signal(i,:)*volt_en+spl(k),'Color',c(i,:)/255);
+                hold on
+            end
+        end
+    end
+    
+%     if num_nosignal==2
+%         break;
+%     end
+end
+toc;
+set(gca,'box','off','tickdir','out','fontname','arial','fontsize',14)
+xlabel('Time (ms)')
+ylim([-5,65])
+disp(spl)
+disp(thres_num)
+disp(is_signal)
+disp(sprintf('max test num is %.4d and max_iteration is %.1d',ABR(1).sweeps(end),size(data,1)/3))
+
+subplot(3,3,3)
+for k=1:length(spl)
+    ccMat(k,:)=lags(k).ccm(final_num(k),:);
+end
+cc_mean=normalize(mean(ccMat,2),'range');
+cc_std=std(ccMat,[],2);
+scatter(spl(find(is_signal)),cc_mean(find(is_signal)),'k.','SizeData',600);
+hold on;
+scatter(spl(find(not(is_signal))),cc_mean(find(not(is_signal))),'ko','SizeData',100);
+errorbar(spl,cc_mean,cc_std,'k')
+set(gca,'xDir','reverse','box','off','tickdir','out','fontname','arial','fontsize',14)
+
+subplot(3,3,6)
+lagMat=[];
+for k=1:length(spl)
+    lagMat(k,:)=lags(k).lag(final_num(k),:);
+end
+lag_mean=mean(lagMat,2);
+lag_std=std(lagMat,[],2);   
+scatter(spl(find(is_signal)),lag_mean(find(is_signal)),'k.','SizeData',600);
+hold on;
+scatter(spl(find(not(is_signal))),lag_mean(find(not(is_signal))),'ko','SizeData',100);
+errorbar(spl,lag_mean,lag_std,'k')
+plot(0:60,(0:60)*0+6,'rREPLACE_WITH_DASH_DASH');
+set(gca,'xDir','reverse','box','off','tickdir','out','fontname','arial','fontsize',14)
+
+
+subplot(3,3,9)
+[f1,gof]=sigFit(spl,(final_num-1)/(max(final_num)-1));
+spls=0:0.1:60;
+yfit=f1(spls)*(max(final_num)-1)+1;
+scatter(spl(find(is_signal)),final_num(find(is_signal)),'k.','SizeData',600);
+hold on;
+scatter(spl(find(not(is_signal))),final_num(find(not(is_signal))),'ko','SizeData',100);
+plot(spl,final_num,'k-')
+plot(10:60,(10:60)*0+7,'rREPLACE_WITH_DASH_DASH');
+%plot(spls,yfit,'r-')
+ylim([0,8])
+xlabel('Level (dB pe SPL)')
+ylabel('Iteration count')
+set(gca,'xDir','reverse','box','off','tickdir','out','fontname','arial','fontsize',14)
+
+% subplot(3,2,4)
+[f1,gof]=sigFit(spl,(final_num-1)/(max(final_num)-1));
+% scatter(spl,(final_num-1)/(max(final_num)-1),'k.','sizeData',600);
+% hold on;
+spls=0:0.1:60;
+yfit=f1(spls);
+% plot(spls,yfit,'r-');
+% set(gca,'box','off','xdir','reverse','tickdir','out')
+thres=round(spls(find(yfit<=0.9,1,'first')));
+disp(sprintf('Satified threshold on 0.9 sigFit is %0.2d dB',thres));
+disp(gof)
+##### SOURCE END #####
+--></body></html>
